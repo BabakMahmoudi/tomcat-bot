@@ -1,0 +1,48 @@
+#
+# This would being up the tomcat public services. These services include:
+# public-redis: A public redis instance that is shared among all services and bots.
+#               This public redis is exposed on port 6380 to identify it from other redis
+#               services. One may connect to this by: 
+#                 'docker exec -it tomcat-public-redis redis-cli'
+# 
+# Note that a 'tomcat-public-net' is created. This network should be used in bot containers
+# such as:
+#  app:
+#     build:
+#       context: .
+#     image: tomcat-test
+#     env_file: docker-compose.env
+#     networks:
+#       - internal
+#       - tomcat-public-net
+#     depends_on:
+#       - redis
+# networks:
+#   internal: {}
+#   tomcat-public-net:
+#     name: tomcat-public-net
+#     external: true
+#     driver: bridge
+# Refernces:
+#     https://docs.docker.com/compose/networking/
+#     https://docs.docker.com/network/network-tutorial-standalone/
+# volumes: https://github.com/docker-library/redis/issues/111
+#     
+version: '3.3'
+services:
+  public-redis:
+    image: redis
+    ports:
+      - 6380:6379
+    networks:
+      - tomcat-public
+    container_name: tomcat-public-redis
+    volumes:
+      - redis-data:/data
+  
+networks:
+  tomcat-public: 
+    name: tomcat-public-net
+    driver: bridge
+volumes:
+  redis-data:
