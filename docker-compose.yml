@@ -1,0 +1,28 @@
+version: '3.3'
+services:
+  redis:
+    image: redis
+    # ports:
+    #   - 6378:6379
+    networks:
+      - internal
+  app:
+    build:
+      context: .
+    image: tomcat-test
+    env_file: docker-compose.env
+    networks:
+      - internal
+      - tomcat-public-net
+    depends_on:
+      - redis
+networks:
+  internal: {}
+  tomcat-public-net:
+    name: tomcat-public-net
+    external: true
+    driver: bridge
+    
+    
+    
+  
