@@ -1,11 +1,11 @@
 {
-    "name": "tomcat-bot",
+    "name": "@gostarehnegar/tomcat-bot-hosting",
     "version": "1.0.0",
     "description": "bots for tomcat",
     "main": "build/main/index.js",
     "typings": "build/main/index.d.ts",
     "module": "build/module/index.js",
-    "repository": "https://github.com/BabakMahmoudi/tomcat-bot",
+    "repository": "https://github.com/BabakMahmoudi/tomcat-bot-hosting",
     "license": "MIT",
     "keywords": [],
     "scripts": {

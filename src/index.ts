@@ -1,17 +1,18 @@
 import tomcat from '@gostarehnegar/tomcat'
 import { BotProcess } from './BotProcess';
 import { } from './'
-import { RedisBus } from './RedisBus';
 import { CandleStickData, Utils } from '@gostarehnegar/tomcat/build/main/lib/common';
-tomcat.config.data.redis.publicUrl = "redis://localhost:6380";
+tomcat.config.data.redis.publicUrl = "redis://localhost:6379";
 tomcat.config.messaging.transports.websocket.diabled = true;
 //import redis from "redis";
 //import { CandleStickData } from '@gostarehnegar/tomcat/build/main/lib/common';
 //console.log("hello world1", tomcat.utils.toTimeEx());
 (CandleStickData)
-var bot = new BotProcess("sample");
+// var bot = new BotProcess("sample");
+var bot = new BotProcess("../tomcat-bots-talib/build/main/Mohsen/index.js");
+
 (bot);
-var bus = new RedisBus();
+var bus = new tomcat.Infrastructure.Bus.RedisBus();
 (async () => {
 
     bus.subscribe('bots:*', m => {
@@ -20,15 +21,15 @@ var bus = new RedisBus();
     bus.subscribe('candle', m => {
         console.log(`Candle: ${m.content<CandleStickData>().openTime}`);
     });
+    bus.subscribe('/Mohsen/*', (m) => {
+        console.log(m.content<CandleStickData>().openTime);
 
-    // bus.subscribe('bots:ping', m => {
-    //     console.log('ping only', `Ping ${m.content<string>()}`);
-    // });
-    //await Utils.instance.delay(3000);
+    })
 
     //bus.publish('bots:ping', `Ping From ${'ame'} at ${new Date().toISOString()}`);
+    Object.assign(tomcat.config, { 'SYMBOL': "SHIBUSDT" })
     await bot.prepareWorkspace();
-    await bot.Start(Object.assign(tomcat.config, { 'param': 'babak' }));
+    await bot.Start(Object.assign(tomcat.config, { 'Mohsen': { 'SYMBOL': "SHIBUSDT" } }));
 
     // //await Utils.WriteText();
     while (true) {

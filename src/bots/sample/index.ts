@@ -1,12 +1,11 @@
 import tomcat from "@gostarehnegar/tomcat";
 import { Pipeline } from "@gostarehnegar/tomcat/build/main/lib/pipes";
-import { RedisBus } from "../../RedisBus";
 import { Utils } from "../../Utils";
 const cfg = Utils.ReadConfig<any>(__dirname);
 //console.log(Utils)
 //tomcat.config.data.redis.publicUrl = 'redis://localhost:6380';
 const name = "sample";
-const bus = RedisBus.Bus;
+const bus = tomcat.Infrastructure.Bus.RedisBus.Bus
 var pipeline = new Pipeline();
 tomcat.config.proxy.url = "http://localhost:2395";
 pipeline.from('binance', 'spot', 'BTCUSDT', '1m')
