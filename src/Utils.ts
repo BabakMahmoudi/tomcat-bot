@@ -22,5 +22,8 @@ export class Utils {
         }
         return {} as T;
     }
+    public static getStartedTopic(id: string) {
+        return `${id}/started`
+    }
 
 }

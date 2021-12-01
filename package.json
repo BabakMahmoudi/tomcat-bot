@@ -46,9 +46,10 @@
         "@gostarehnegar/tomcat": "^1.0.2",
         "@types/async-redis": "^1.1.2",
         "@types/fs-extra": "^9.0.13",
-        "fs-extra": "^10.0.0",
         "async-redis": "^2.0.0",
-        "node-ts": "^5.1.2"
+        "fs-extra": "^10.0.0",
+        "node-ts": "^5.1.2",
+        "portastic": "^1.0.1"
     },
     "devDependencies": {
         "@ava/typescript": "^1.1.1",
