@@ -1,10 +1,10 @@
 import { ChildProcess, fork } from 'child_process';
 import path from 'path'
 
-import { Utils } from '@gostarehnegar/tomcat/src/lib/common';
-import { ILogger } from '@gostarehnegar/tomcat/src/lib/infrastructure/base';
+import tomcat from '@gostarehnegar/tomcat';
 import fs from 'fs-extra';
 
+type ILogger = tomcat.Infrastructure.Base.ILogger
 
 export class BotProcess {
     public id: string;
@@ -23,7 +23,7 @@ export class BotProcess {
         this.workspace = `./workspace/${this.name}/${this.id}`
         this.src = path.parse(this._path).dir
         this.indexJs = _path
-        this.logger = Utils.instance.getLogger(this.name);
+        this.logger = tomcat.Domain.Base.Utils.instance.getLogger(this.name);
     }
 
     public get Process() {

@@ -7,7 +7,7 @@ export class DataServiceCollection {
     public availableServices: serviceDescription[] = []
     public runningServices: serviceDescription[] = []
     constructor(){
-        this.availableServices.push({category="data"})
+        this.availableServices.push({category:"data",cancel:null,pipeline:null , serviceDefinition:null , waitHandle:null})
     }
     async getCapability(query) {
         if (query.serviceDefinition.category == 'data' && query.serviceDefinition.parameters["exchange"] == 'coinex') {
@@ -29,7 +29,7 @@ export class DataServiceCollection {
         const params = serviceDef.parameters
         const pipeline = new tomcat.Domain.Pipes.Pipeline()
             .from(params["exchange"] as tomcat.Domain.Base.Exchanges, params["market"] as tomcat.Domain.Base.Markets, params["symbol"] as tomcat.Domain.Base.Symbols, params["interval"] as tomcat.Domain.Base.Intervals)
-        const servicedes: serviceDescription = { pipeline: pipeline, serviceDefinition: serviceDef, cancel: false }
+        const servicedes: serviceDescription = { pipeline: pipeline, serviceDefinition: serviceDef, cancel: false ,category:null}
         servicedes.waitHandle = pipeline.startEx(null, () => {
             return servicedes.cancel
         })
@@ -51,7 +51,7 @@ const addService = (serviceDef: tomcat.Infrastructure.Mesh.ServiceDefinition) =>
     const params = serviceDef.parameters
     const pipeline = new tomcat.Domain.Pipes.Pipeline()
         .from(params["exchange"] as tomcat.Domain.Base.Exchanges, params["market"] as tomcat.Domain.Base.Markets, params["symbol"] as tomcat.Domain.Base.Symbols, params["interval"] as tomcat.Domain.Base.Intervals)
-    const servicedes: serviceDescription = { pipeline: pipeline, serviceDefinition: serviceDef, cancel: false }
+    const servicedes: serviceDescription = { pipeline: pipeline, serviceDefinition: serviceDef, cancel: false ,category:null}
     servicedes.waitHandle = pipeline.startEx(null, () => {
         return servicedes.cancel
     })
