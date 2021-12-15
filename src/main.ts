@@ -22,7 +22,7 @@ bus.subscribe("bots/*/controls/*", (m) => {
 })
 app.get('/start', async (req, res) => {
     const conf = req.body
-    const bot = new BotProcess("../tomcat-bots-talib/build/main/Arshia/index.js");
+    const bot = new BotProcess("../tomcat-bots-talib/build/main/Mohsen/index.js");
     Processes.push(bot)
     bots.push({ id: bot.id })
     res.end()
@@ -30,7 +30,7 @@ app.get('/start', async (req, res) => {
 })
 app.post('/start', async (req, res) => {
     const conf = req.body
-    const bot = new BotProcess("../tomcat-bots-talib/build/main/Arshia/index.js");
+    const bot = new BotProcess("../tomcat-bots-talib/build/main/Mohsen/index.js");
     Processes.push(bot)
     bots.push({ id: bot.id })
     res.end()
