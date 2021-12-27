@@ -1,24 +1,7 @@
-// import { exec } from 'child_process';
+import { ChildProcessWithoutNullStreams, exec, spawn } from 'child_process';
 
-// const stopAndRemoveRedis = async (containerId: string) => {
-//     return new Promise<string>((resolve, reject) => {
-//         exec(`docker rm -f ${containerId}`, (err, std) => {
-//             if (err) {
-//                 reject(err)
-
-//             } if (std) {
-//                 resolve(std)
-//             }
-//         })
-//     })
-// }
-
-// (async () => {
-//     const res = await waitForRedis();
-//     await stopAndRemoveRedis(res as string)
-// })()
-import { spawn, ChildProcessWithoutNullStreams, exec } from 'child_process';
 import port from 'portastic'
+
 const getPort = (min: number, max: number) => {
     return new Promise<number>((resolve, reject) => {
         port.find({ min: min, max: max }, function (data, err) {

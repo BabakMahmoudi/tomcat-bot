@@ -1,7 +1,8 @@
 import tomcat from '@gostarehnegar/tomcat'
-import { BotProcess } from './BotProcess';
-import { } from './'
 import { CandleStickData, Utils } from '@gostarehnegar/tomcat/build/main/lib/common';
+
+import { BotProcess } from './BotProcess';
+
 tomcat.config.data.redis.publicUrl = "redis://localhost:6379";
 tomcat.config.messaging.transports.websocket.diabled = true;
 //import redis from "redis";
@@ -9,10 +10,10 @@ tomcat.config.messaging.transports.websocket.diabled = true;
 //console.log("hello world1", tomcat.utils.toTimeEx());
 (CandleStickData)
 // var bot = new BotProcess("sample");
-var bot = new BotProcess("../tomcat-bots-talib/build/main/Mohsen/index.js");
+const bot = new BotProcess("../tomcat-bots-talib/build/main/Mohsen/index.js");
 
 (bot);
-var bus = new tomcat.Infrastructure.Bus.RedisBus();
+const bus = new tomcat.Infrastructure.Bus.RedisBus();
 (async () => {
 
     bus.subscribe('bots:*', m => {

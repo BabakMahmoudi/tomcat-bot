@@ -5,7 +5,7 @@ tomcat.config.data.redis.publicUrl = "redis://localhost:6379";
 tomcat.config.messaging.transports.websocket.diabled = true;
 const bus = new tomcat.Infrastructure.Bus.RedisBus();
 
-const host = tomcat.hosts.getHostBuilder("mohsen").buildWebHost('express')
+const host = tomcat.getHostBuilder("mohsen").buildWebHost('express')
 const Processes: BotProcess[] = []
 const app = host.expressApp
 const bots = []
@@ -22,7 +22,7 @@ bus.subscribe("bots/*/controls/*", (m) => {
 })
 app.get('/start', async (req, res) => {
     const conf = req.body
-    const bot = new BotProcess("../tomcat-bots-talib/build/main/Mohsen/index.js");
+    const bot = new BotProcess("./build/main/bots/Arshia/index.js");
     Processes.push(bot)
     bots.push({ id: bot.id })
     res.end()
@@ -30,7 +30,7 @@ app.get('/start', async (req, res) => {
 })
 app.post('/start', async (req, res) => {
     const conf = req.body
-    const bot = new BotProcess("../tomcat-bots-talib/build/main/Mohsen/index.js");
+    const bot = new BotProcess("./build/main/bots/Arshia/index.js");
     Processes.push(bot)
     bots.push({ id: bot.id })
     res.end()

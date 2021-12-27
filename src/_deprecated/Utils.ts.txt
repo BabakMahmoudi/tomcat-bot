@@ -1,6 +1,7 @@
-import tomcat from '@gostarehnegar/tomcat';
 import fs from 'fs';
 import path from 'path';
+
+import tomcat from '@gostarehnegar/tomcat';
 export class Utils {
 
 
@@ -10,13 +11,13 @@ export class Utils {
     }
     public static ReadConfig<T>(dir: string): T {
 
-        var configFile = path.resolve(dir, 'config.json')
+        const configFile = path.resolve(dir, 'config.json')
         console.log(configFile);
-        var data = fs.existsSync(configFile)
+        const data = fs.existsSync(configFile)
             ? fs.readFileSync(configFile).toString()
             : null;
         if (data) {
-            var result = JSON.parse(data) as T;
+            const result = JSON.parse(data) as T;
             Object.assign(tomcat.config, result);
             return result;
         }

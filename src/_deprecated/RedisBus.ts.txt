@@ -29,8 +29,6 @@ export class RedisBus {
     private _publisher: redis.RedisClient;
     private _subscriber: redis.RedisClient;
 
-    constructor() {
-    }
     private createRedisClient() {
         return createPublicRedistClient() || redis.createClient(tomcat.config.data.redis.publicUrl);
     }
@@ -57,12 +55,13 @@ export class RedisBus {
     public subscribe(topic: string, cb: (messag: Message) => void) {
         const subscriber = this.subscriber();
         subscriber.psubscribe(topic, (_err, _count) => {
+            (_count)
             if (_err) {
                 throw _err
             }
             subscriber.on('pmessage', (_patter, _channel, _content) => {
-                var o = JSON.parse(_content) as MessagePack;
-                var message = new Message(o.topic, o.content);
+                const o = JSON.parse(_content) as MessagePack;
+                const message = new Message(o.topic, o.content);
                 if (cb) {
                     cb(message);
                 }
@@ -70,8 +69,9 @@ export class RedisBus {
         });
 
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public publish(topic: string, content: any): void {
-        var pack = new MessagePack();
+        const pack = new MessagePack();
         pack.id = Date.now();
         pack.topic = topic;
         pack.content = content;
