@@ -26,12 +26,14 @@ export class proxy extends tomcat.Infrastructure.Hosting.BackgroundService imple
     public process: ChildProcessWithoutNullStreams;
     public bus: tomcat.Infrastructure.Bus.IMessageBus;
     public isAlive: boolean;
+    public status :tomcat.Infrastructure.Mesh.ServiceStatus = "start"
+    public Id: string = tomcat.utils.UUID()
     constructor() {
         super();
         this.bus = tomcat.services.getBus()
     }
     getInformation(): tomcat.Infrastructure.Mesh.ServiceInformation {
-        return { category: 'proxy', parameters: { connected: this.isAlive } }
+        return { category: 'proxy', parameters: { connected: this.isAlive }, status:this.status}
     }
     protected async run(token: tomcat.Infrastructure.Base.CancellationToken): Promise<void> {
         while (!token.isCancelled) {

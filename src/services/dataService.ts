@@ -1,5 +1,7 @@
 import tomcat from "@gostarehnegar/tomcat";
 
+
+tomcat.Infrastructure.Base.Logger.level = 'debug'
 tomcat.config.infrastructure.data.redis.url = "redis://localhost:6379"
 export class DataService implements tomcat.Infrastructure.Mesh.IMeshService {
     public exchange
@@ -10,6 +12,7 @@ export class DataService implements tomcat.Infrastructure.Mesh.IMeshService {
     public endTime
     public streamName;
     public status: tomcat.Infrastructure.Mesh.ServiceStatus = 'start'
+    public Id: string = tomcat.utils.UUID()
     constructor(public def: tomcat.Infrastructure.Mesh.ServiceDefinition) {
         this.exchange = this.def.parameters["exchange"] as tomcat.Domain.Base.Exchanges
         this.symbol = this.def.parameters["symbol"] as tomcat.Domain.Base.Symbols
@@ -43,13 +46,22 @@ export class DataService implements tomcat.Infrastructure.Mesh.IMeshService {
     }
 }
 
+const dataServices: DataService[] = [];
+
 (async () => {
     const client1 = tomcat.getHostBuilder('dataservice')
         .addMessageBus(cfg => {
             cfg.endpoint = "dataservice";
-            cfg.transports.websocket.url = "http://localhost:8082/hub";
+            cfg.transports.websocket.url
         })
-        .addMeshService({ category: 'data' as tomcat.Infrastructure.Mesh.ServiceCategories, parameters: {} }, (def) => new DataService(def))
+        .addMeshService({ category: 'data' as tomcat.Infrastructure.Mesh.ServiceCategories, parameters: {} }, (def) => {
+            let service = dataServices.find(x => tomcat.Infrastructure.Mesh.matchService(x.getInformation(), def))
+            if (!service) {
+                service = new DataService(def)
+                dataServices.push(service)
+            }
+            return service
+        })
         .build();
 
     client1.bus.subscribe(tomcat.Domain.Contracts.queryDataStreamName(null).topic, async (ctx) => {

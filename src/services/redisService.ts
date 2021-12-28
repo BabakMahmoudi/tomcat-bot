@@ -1,6 +1,7 @@
 import { ChildProcessWithoutNullStreams, exec, spawn } from 'child_process';
 
 import tomcat from "@gostarehnegar/tomcat";
+tomcat.Infrastructure.Base.Logger.level = 'debug'
 
 
 export type redisInfo = {
@@ -17,6 +18,7 @@ export class RedisService implements tomcat.Infrastructure.Mesh.IMeshService {
     public containerId: string;
     public isReady: boolean
     public status: tomcat.Infrastructure.Mesh.ServiceStatus = 'start'
+    public Id: string = tomcat.utils.UUID()
     constructor(public def: tomcat.Infrastructure.Mesh.ServiceDefinition) {
         this.containerName = (this.def.parameters && this.def.parameters["name"]) as string || tomcat.utils.randomName("redis")
         this.portNumber = this.def.parameters && this.def["port"] as string

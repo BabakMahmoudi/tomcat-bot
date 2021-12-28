@@ -42,7 +42,7 @@ if (config.info.length > 0) {
 }
 config.SYMBOL = "DOGE/USDT"
 const start = tomcat.utils.toTimeEx().addMinutes(-998 * 30)
-const bus = tomcat.Infrastructure.Bus.RedisBus.Bus
+// const bus = tomcat.Infrastructure.Bus.RedisBus.Bus
 tomcat.config.data.redis.publicUrl = "redis://localhost:6379"
 
 const wallet = new Wallet(config.INITIALBALANCE, config.WALLETSTREAM)
@@ -53,11 +53,16 @@ let signal = ""
 let position = "sell"
 let signalCandle: CandleStickData
 
+const host = tomcat
+    .getHostBuilder("bot")
+    .addMessageBus()
+    .buildWebHost('express');
+const bus = host.services.getBus();
 pipeline.from('coinex', 'spot', config.SYMBOL, '30m', config.DATASTREAM)
     .add(rsi)
     .add(halfTrend, { stream: true, name: config.INDICATORSTREAM })
     .add(async (candle, THIS) => {
-        bus.publish("/Mohsen/data", candle)
+        bus.createMessage("/Mohsen/data", candle).publish()
         THIS.context.stream = THIS.context.stream || new Stream<Mohsen>(config.SIGNALSTREAM)
         const stream = THIS.context.stream as tomcat.Domain.Streams.Stream<Mohsen>
         if (candle.indicators.getValue<string>(hTSignal)) {
@@ -93,15 +98,11 @@ pipeline.startEx(start)
 
 const CandleStream = tomcat.Domain.Streams.CandleStream
 const PORT = Math.floor(Math.random() * 100 + 8000);
-const app = tomcat
-    .hosts
-    .getHostBuilder("bot")
-    .buildWebHost('express')
-    .expressApp;
+
 const strategyStream = new CandleStream(config.SIGNALSTREAM)
 const walletStream = new CandleStream(config.WALLETSTREAM)
 
-
+const app = host.expressApp
 app.get("/query", async (req, res) => {
     const timquery = req.query["startTime"] as string
     const time = timquery.indexOf('Z') > 0 ?
@@ -127,6 +128,6 @@ app.get("/trades", async (req, res) => {
     res.json(trades)
 })
 app.listen(PORT, () => {
-    bus.publish("bots/mohsen/controls/started", { port: PORT, id: config.id })
+    bus.createMessage("bots/mohsen/controls/started", { port: PORT, id: config.id }).publish()
     console.log(`tomcat listening on port ${PORT} ...`);
 });

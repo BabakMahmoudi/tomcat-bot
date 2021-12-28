@@ -2,6 +2,7 @@
 import tomcat from '@gostarehnegar/tomcat'
 
 import { Wallet } from './wallet'
+
 const STRATEGYSTREAM = "strategy-BT-01"
 const WALLETSTREAM = "wallet-BT-01"
 // const DATASTREAM = "data-BT-01"
@@ -68,19 +69,8 @@ export class Strategy {
 }
 
 const requireDataStream = async (bus: tomcat.Infrastructure.Bus.IMessageBus, exchange, interval, market, symbol) => {
-    const service = new tomcat.Domain.Contracts.DataServiceDefinition({ exchange: exchange, interval: interval, market: market, symbol: symbol})
-    let status: tomcat.Infrastructure.Mesh.ServiceStatus = "stop"
-    while (status !== 'start') {
-        try {
-
-            const res: tomcat.Infrastructure.Mesh.ServiceInformation = (await bus.createMessage(tomcat.Infrastructure.Contracts.requireService(service)).execute())
-                ?.cast<tomcat.Infrastructure.Mesh.ServiceInformation>()
-            status = res?.status
-        } catch (err) {
-            console.error(err);
-        }
-    }
-    return status
+    const service = new tomcat.Domain.Contracts.DataServiceDefinition({ exchange: exchange, interval: interval, market: market, symbol: symbol })
+    await bus.createMessage(tomcat.Infrastructure.Contracts.requireService(service)).publish()
 }
 
 const queryStreamName = async (bus: tomcat.Infrastructure.Bus.IMessageBus, exchange, interval, market, symbol, startTime) => {
@@ -106,7 +96,8 @@ export class ArshiaBot implements tomcat.Infrastructure.Mesh.IMeshService {
     public endTime;
     public dataStream;
     public redisContainer
-    public status: tomcat.Infrastructure.Mesh.ServiceStatus = 'start'
+    public status: tomcat.Infrastructure.Mesh.ServiceStatus = 'stop'
+    public Id: string = tomcat.utils.UUID()
     constructor(public def: tomcat.Infrastructure.Mesh.ServiceDefinition, public serviceProvider: tomcat.Infrastructure.Base.IServiceProvider) {
         this.wallet = new Wallet(1000, null, 'BTCUSDT', WALLETSTREAM)
         this.exchange = this.def.parameters['exchange'] || "binance"
@@ -178,42 +169,47 @@ export class ArshiaBot implements tomcat.Infrastructure.Mesh.IMeshService {
         return signal
     }
     async start(): Promise<unknown> {
-        let isStreamAvailable;
-        let connectionString;
-        await requireDataStream(this.serviceProvider.getBus(), this.exchange, this.interval, this.market, this.symbol);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const isRedis: any = await requireRedisStream(this.serviceProvider.getBus());
-        while (!isStreamAvailable && !connectionString) {
-            try {
-                connectionString = await queryRedisConnectionString(this.serviceProvider.getBus(), isRedis.payload.parameters["redisName"])
-                isStreamAvailable = await queryStreamName(this.serviceProvider.getBus(), this.exchange, this.interval, this.market, this.symbol, this.startTime)
-            } catch (err) {
-                console.error(err);
-            }
-        }
-        this.dataStream = isStreamAvailable.payload["connectionString"]
-        this.redisContainer = connectionString.payload["connectionString"]
-        const pipeline = new tomcat.Domain.Pipes.Pipeline()
-        pipeline.fromStream(this.dataStream)
-            .add(indicators.ADX())
-            .add(indicators.MDI())
-            .add(indicators.ATR())
-            .add(indicators.SAR())
-            .add(indicators.PDI())
-            .add(isSarAbove)
-            .add(adxSlope)
-            .add(stopLossAtr, { stream: true, name: INDICATORSTREAM })
-            .add(async (candle, THIS) => {
-                THIS.context.stream = THIS.context.stream || new tomcat.Domain.Streams.Stream<Strategy>(STRATEGYSTREAM, this.redisContainer)
-                const stream = THIS.context.stream as Stream<Strategy>
-                const res = await this.strategy(candle)
-                await stream.write(tomcat.utils.toTimeEx(candle.openTime), { name: res.signal, candle: candle })
-                if (res.signal && candle.openTime >= tomcat.utils.toTimeEx(Date.UTC(2020, 0, 1, 0, 0, 0, 0)).ticks) {
-                    await this.wallet.onSignal(res)
+        if (this.status == "start") {
+            return Promise.resolve()
+        } else {
+            let isStreamAvailable;
+            let connectionString;
+            await requireDataStream(this.serviceProvider.getBus(), this.exchange, this.interval, this.market, this.symbol);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const isRedis: any = await requireRedisStream(this.serviceProvider.getBus());
+            while (!isStreamAvailable && !connectionString) {
+                try {
+                    connectionString = await queryRedisConnectionString(this.serviceProvider.getBus(), isRedis.payload.parameters["redisName"])
+                    isStreamAvailable = await queryStreamName(this.serviceProvider.getBus(), this.exchange, this.interval, this.market, this.symbol, this.startTime)
+                } catch (err) {
+                    console.error(err);
                 }
-            })
-        pipeline.startEx(this.startTime)
-        return Promise.resolve()
+            }
+            this.dataStream = isStreamAvailable.payload["connectionString"]
+            this.redisContainer = connectionString.payload["connectionString"]
+            const pipeline = new tomcat.Domain.Pipes.Pipeline()
+            pipeline.fromStream(this.dataStream)
+                .add(indicators.ADX())
+                .add(indicators.MDI())
+                .add(indicators.ATR())
+                .add(indicators.SAR())
+                .add(indicators.PDI())
+                .add(isSarAbove)
+                .add(adxSlope)
+                .add(stopLossAtr, { stream: true, name: INDICATORSTREAM })
+                .add(async (candle, THIS) => {
+                    THIS.context.stream = THIS.context.stream || new tomcat.Domain.Streams.Stream<Strategy>(STRATEGYSTREAM, this.redisContainer)
+                    const stream = THIS.context.stream as Stream<Strategy>
+                    const res = await this.strategy(candle)
+                    await stream.write(tomcat.utils.toTimeEx(candle.openTime), { name: res.signal, candle: candle })
+                    if (res.signal && candle.openTime >= tomcat.utils.toTimeEx(Date.UTC(2020, 0, 1, 0, 0, 0, 0)).ticks) {
+                        await this.wallet.onSignal(res)
+                    }
+                })
+            this.status = "start"
+            pipeline.startEx(this.startTime)
+            return Promise.resolve()
+        }
     }
 
 }
