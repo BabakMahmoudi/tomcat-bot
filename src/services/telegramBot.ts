@@ -2,7 +2,7 @@ import tomcat from "@gostarehnegar/tomcat"
 import NodeTelegram from 'node-telegram-bot-api'
 
 export class TelegramBot implements tomcat.Infrastructure.Mesh.IMeshService {
-    public token = '2140430977:AAFT50BLGLJCHYP31IixwQCtfuf3Sq6mbvk';
+    public token = '';
     public client;
     public Id: string = tomcat.utils.UUID()
     public status: tomcat.Infrastructure.Mesh.ServiceStatus = "stop"
