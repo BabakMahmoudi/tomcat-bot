@@ -79,11 +79,18 @@ const queryStreamName = async (bus: tomcat.Infrastructure.Bus.IMessageBus, excha
 }
 
 const requireRedisStream = async (bus: tomcat.Infrastructure.Bus.IMessageBus) => {
-    const res = await bus.createMessage(tomcat.Infrastructure.Contracts.serviceOrder({ category: 'redis', parameters: {} })).execute()
-    return res
+    try{
+        const res = await bus.createMessage(tomcat.Infrastructure.Contracts.requireService({ category: 'redis', parameters: {} })).execute(undefined , 60000)
+        return res
+    }catch(err){
+        console.log(err);
+        return null
+    }
 }
 const queryRedisConnectionString = async (bus: tomcat.Infrastructure.Bus.IMessageBus, containerName) => {
-    return await bus.createMessage(tomcat.Domain.Contracts.queryRedisContainer({ containerName: containerName })).execute()
+    const res =  await bus.createMessage(tomcat.Domain.Contracts.queryRedisContainer({ containerName: containerName,id:"45" })).execute()
+    return res
+
 }
 
 export class ArshiaBot implements tomcat.Infrastructure.Mesh.IMeshService {
@@ -175,20 +182,26 @@ export class ArshiaBot implements tomcat.Infrastructure.Mesh.IMeshService {
             let isStreamAvailable;
             let connectionString;
             await requireDataStream(this.serviceProvider.getBus(), this.exchange, this.interval, this.market, this.symbol);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const isRedis: any = await requireRedisStream(this.serviceProvider.getBus());
+            await requireRedisStream(this.serviceProvider.getBus());
             while (!isStreamAvailable && !connectionString) {
                 try {
-                    connectionString = await queryRedisConnectionString(this.serviceProvider.getBus(), isRedis.payload.parameters["redisName"])
                     isStreamAvailable = await queryStreamName(this.serviceProvider.getBus(), this.exchange, this.interval, this.market, this.symbol, this.startTime)
+                    connectionString = await queryRedisConnectionString(this.serviceProvider.getBus(), "hi")
                 } catch (err) {
                     console.error(err);
                 }
             }
             this.dataStream = isStreamAvailable.payload["connectionString"]
-            this.redisContainer = connectionString.payload["connectionString"]
+            const redisopt = connectionString.payload
+            tomcat.config.infrastructure.data.redisEx = redisopt
+            // this.redisContainer = connectionString.payload["connectionString"]
+            // const st = new tomcat.Domain.Streams.Stream("paria", connectionString.payload);
+            const a = tomcat.Infrastructure.Data.createRedistClient()
+            a.set("first" , "babak")
+            // const redis = this.serviceProvider.getRedisFactory().createClient(redisopt);
+            // await redis.set("name" , "paria")
             const pipeline = new tomcat.Domain.Pipes.Pipeline()
-            pipeline.fromStream(this.dataStream)
+            pipeline.from("binance",'spot','BTC/USDT','1m')
                 .add(indicators.ADX())
                 .add(indicators.MDI())
                 .add(indicators.ATR())
@@ -198,7 +211,7 @@ export class ArshiaBot implements tomcat.Infrastructure.Mesh.IMeshService {
                 .add(adxSlope)
                 .add(stopLossAtr, { stream: true, name: INDICATORSTREAM })
                 .add(async (candle, THIS) => {
-                    THIS.context.stream = THIS.context.stream || new tomcat.Domain.Streams.Stream<Strategy>(STRATEGYSTREAM, this.redisContainer)
+                    THIS.context.stream = THIS.context.stream || new tomcat.Domain.Streams.Stream<Strategy>(STRATEGYSTREAM, redisopt)
                     const stream = THIS.context.stream as Stream<Strategy>
                     const res = await this.strategy(candle)
                     await stream.write(tomcat.utils.toTimeEx(candle.openTime), { name: res.signal, candle: candle })

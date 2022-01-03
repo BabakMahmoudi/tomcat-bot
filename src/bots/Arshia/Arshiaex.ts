@@ -9,6 +9,7 @@ tomcat.Infrastructure.Base.Logger.level = "debug";
     const host = tomcat.getHostBuilder("arshia")
         .addMessageBus(cfg => {
             cfg.endpoint = "arshia"
+            cfg.transports.websocket.url = "http://localhost:8084/hub"
         })
         .addMeshService({ category: 'strategy', parameters: {} }, (def) => {
             (def);//check def and deside on rejecting
