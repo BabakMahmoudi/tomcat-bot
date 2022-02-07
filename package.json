@@ -55,7 +55,8 @@
     "fs-extra": "^10.0.0",
     "node-telegram-bot-api": "^0.56.0",
     "node-ts": "^5.1.2",
-    "portastic": "^1.0.1"
+    "portastic": "^1.0.1",
+    "talib": "^1.1.4"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",

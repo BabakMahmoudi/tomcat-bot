@@ -22,3 +22,8 @@ declare module 'module-name' {
   const whatever: any;
   export = whatever;
 }
+declare module 'talib' {
+  const whatever: talib;
+  export = whatever;
+}
+
